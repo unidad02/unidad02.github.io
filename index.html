@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Juego con Javascript</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script>
+        function seTocan(e1, e2) {
+            const rE1 = e1.getBoundingClientRect();
+            const rE2 = e2.getBoundingClientRect();
+            return (rE1.right >= rE2.left &&
+            rE1.left <= rE2.right &&
+            rE1.top <= rE2.bottom &&
+            rE1.bottom >= rE2.top);
+        }
+        
+        /** @interface */
+        class SeMueve{
+            retrocede(){
+                throw new Error("intf");
+            }
+            avanza(){
+                throw new Error("intf");
+            }
+            sube(){
+                throw new Error("intf");
+            }
+            baja(){
+                throw new Error("intf");
+            }
+        }
+         /** @implements {SeMueve} */
+        class AsukaWeb extends HTMLElement{
+            connectedCallback(){
+                this.x=0;
+                this.y=0;
+                this.innerHTML=`<img src="/img/asuka-corriendo.gif" alt="" width="150">`;
+                this.style.position = "fixed";
+                this.style.right =`${this.x}px`;
+                this.style.bottom =`${this.y}px`;
+            }
+            retrocede(){  
+                this.x = (this.x + 30) % window.innerWidth;
+                this.style.right = `${this.x}px`;
+                this.style.bottom = `${this.y}px`;
+            }
+            avanza(){  
+                this.x -= (this.x + 30) % window.innerWidth /8;
+                this.style.right =`${this.x}px`;
+            }
+            sube(){
+                this.y = (this.y + 30) % window.innerWidth;
+                this.style.bottom = `${this.y}px`;
+                this.style.right = `${this.x}px`;
+            }
+            baja(){
+              
+                this.y -= (this.y + 30) % window.innerWidth/5;
+                this.style.bottom = `${this.y}px`;
+                this.style.right = `${this.x}px`;
+            }
+        }
+        customElements.define("asuka-web", AsukaWeb);
+       
+        class EnemigoWeb extends HTMLElement{
+            connectedCallback(){
+                
+                this.innerHTML=`<img src="/img/eva02.jpg" alt="" width="190">`;
+                this.style.position = "auto";
+                this.style.right =`${this.x}px`;
+                this.style.bottom =`${this.y}px`;
+                
+            }
+        }
+        customElements.define("enemigo-web",EnemigoWeb);
+    </script>
+</head>
+<body>
+    <h1 id="encabezado">Tú (no) salvaras al mundo</h1>
+    <div class="controles">
+      <p>Puntuación:</p>
+      <div id="number"></div>
+        <p id="direcciones">
+            <button onclick="retrocede();" class="direccion"> 
+                ◀
+            </button>
+            <button onclick="avanza();" class="direccion">
+                ▶
+            </button>
+            <div class="arribabajo" id="arribabajo">
+                <button onclick="sube();" class="botones">
+                    ▲
+                </button>
+                <button onclick="baja();" class="botones">
+                    ▼
+                </button>
+            </div>
+        </p>
+        <div id="reiniciar" class="reiniciar">
+            <p id="mensaje">Lo lograste</p>
+            <p>Volver a jugar</p>
+            <button onclick="location.reload()">Reiniciar</button>
+        </div>
+        <div class="instrucciones">Llega al robot <br> antes de que tu puntuación llegue a 0</div>
+    </div>
+    <footer class="footer"> &copy; López Servín Fernando ITIC901M</footer>
+    <script>
+        var n = 21;
+        var l = document.getElementById("number");
+        let puntaje=window.setInterval(function(){
+            l.innerHTML = n-1;
+            n--;
+            if(n==0){
+                perdiste();
+            }
+        },1000);
+        let mensaje = document.getElementById("mensaje");
+        
+        const asuka = new AsukaWeb();
+        document.body.append(asuka);  
+        const enemigo = new EnemigoWeb();
+        document.body.append(enemigo); 
+        
+        function detenerPuntaje(){
+            clearInterval(puntaje);
+            asuka.innerHTML=`<img src="/img/win.gif" alt="" width="100">`;
+            let encabezado = document.getElementById("encabezado");
+            encabezado.innerHTML="Tú salvaras al mundo";
+           
+        }
+
+        function mostrarReinicio(){
+            let boton = document.getElementById("reiniciar");
+            boton.style.display="block";
+        }
+        
+        function ocultarBotones(){
+            let botonesX = document.getElementById("direcciones");
+            let botonesY = document.getElementById("arribabajo");
+            botonesX.style.display="none";
+            botonesY.style.display="none";
+        }
+        
+        function perdiste(){
+            clearInterval(puntaje);
+            mostrarReinicio();
+            ocultarBotones();
+            mensaje.innerHTML="Has perdido :(";
+            asuka.innerHTML=`<img src="/img/lose.gif" alt="" width="100">`;
+            enemigo.innerHTML=`<img src="/img/lose.png" alt="" width="580">`;
+            
+        }
+        function retrocede(){
+            asuka.retrocede();
+            if(seTocan(asuka, enemigo)){
+                detenerPuntaje();
+                ocultarBotones();
+                mostrarReinicio();
+            }
+        }
+        function avanza(){
+            asuka.avanza();
+            if(seTocan(asuka, enemigo)){
+                detenerPuntaje();
+                ocultarBotones();
+                mostrarReinicio();
+            }
+        }
+        function sube(){
+            asuka.sube();
+            if(seTocan(asuka, enemigo)){
+                detenerPuntaje();
+                ocultarBotones();
+                mostrarReinicio();
+            }
+        }
+        function baja(){
+            asuka.baja();
+            if(seTocan(asuka, enemigo)){
+                detenerPuntaje();
+                ocultarBotones();
+                mostrarReinicio();
+            }
+        }
+    </script>
+</body>
+</html>
